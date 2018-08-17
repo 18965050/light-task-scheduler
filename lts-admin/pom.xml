@@ -11,6 +11,10 @@
     <packaging>war</packaging>
     <artifactId>lts-admin</artifactId>
 
+    <properties>
+        <tomcat.version>8.5.24</tomcat.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -95,6 +99,13 @@
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
             <version>1.2</version>
+        </dependency>
+
+        <!-- tomcat -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <!-- Just the annotations; use this dependency if you want to attach annotations
