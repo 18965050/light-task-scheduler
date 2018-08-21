@@ -52,6 +52,10 @@ public abstract class AbstractRemotingServer extends AbstractRemoting implements
         }
 
         // 每隔1秒扫描下异步调用超时情况
+
+        /**
+         * 超时response处理
+         */
         this.timer.scheduleAtFixedRate(new TimerTask() {
 
             @Override

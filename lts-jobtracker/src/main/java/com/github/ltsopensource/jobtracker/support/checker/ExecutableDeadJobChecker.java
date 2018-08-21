@@ -22,6 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Robert HG (254963746@qq.com) on 6/3/15.
  */
+
+/**
+ * dead executable job标志: is_running=true & gmt_modified < now()-60s
+ */
 public class ExecutableDeadJobChecker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableDeadJobChecker.class);

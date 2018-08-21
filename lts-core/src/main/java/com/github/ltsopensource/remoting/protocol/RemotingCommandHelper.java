@@ -35,4 +35,15 @@ public class RemotingCommandHelper {
         return RemotingCommandType.REQUEST_COMMAND;
     }
 
+    public static void main(String[] args) {
+        int bits = 1 << RPC_TYPE;
+        System.out.println(bits);
+        System.out.println(2&bits);
+        System.out.println(2|bits);
+
+        bits = 1 << RPC_ONEWAY;
+        System.out.println(bits);
+        System.out.println(12&bits);
+    }
+
 }

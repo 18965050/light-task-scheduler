@@ -34,6 +34,47 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Robert HG (254963746@qq.com) on 3/25/15.
  */
+
+
+/**
+ * <pre>
+ *     触发条件:
+ *     1. JobTracker可用
+ *     2. 如果设置资源检查, 资源检查通过
+ *     3. 任务运行线程池有空闲线程可运行任务
+ *
+ *     流程:
+ *     1. TaskTracker发送JOB_PULL命令给JobTracker, 进行任务拉取
+ *     2. JobTracker(JobPullProcessor)获取此TaskTracker对应nodeGroup的可执行任务,以及req带过来的可执行线程数, 批次(默认每批次10条)通过命令PUSH_JOB推送给TaskTracker执行
+ *     3. 同时, JobTracker将此任务从executableQueue中删除,并添加进executingQueue中
+ *     4. JobTrackerMStatReporter更新任务推送任务推送数量
+ *     5. 如果JobTracker推送失败(比如TaskTracker上没有空闲的可执行线程等), 回滚任务从executingQueue到executableQueue
+ *     6. TaskTracker(JobPushProcessor)循环批次任务, 对每条任务通过RunnerPool进行任务执行
+ *     7. 执行过程为:
+ *          a. 先将任务放入任务执行Map(RunningJobManager.JOBS)
+ *          b. 创建任务执行类
+ *          c. 进行任务执行并返回执行结果
+ *          d. 将任务移除任务执行Map(RunningJobManager.JOBS)
+ *          e. TaskTrackerMStatReporter进行一些必要的统计
+ *          f. 设置是否接受新任务的标志(receiveNewJob)
+ *          g. 执行完成后, 发送JOB_COMPLETED给JobTracker,并判断发送结果
+ *          h. 如果发送失败,启动retryScheduler,先将执行结果存入failStore中(默认为LeveldbFailStore)
+ *          i. retryScheduler定时任务(默认30s触发一次),从failStore获取任务执行结果(JobRunResult),发送给JobTracker
+ *     8. JobTracker(JobCompletedProcessor)处理任务执行结果:
+ *          a. JobStatBiz->任务执行统计(表lts_job_log_po,JobTrackerMStatReporter )
+ *          b. JobProcBiz->判断此任务十分需要反馈给client, 如果需要, 通过ClientNotifier通知JobClient任务执行结果,并在接受JobClient响应后继续下面c的处理
+ *          c. 判断任务是cron任务或repeat任务, 如果是的话,计算下次任务触发时间.
+ *             如果时间计算不出来, 说明任务执行完成, 直接从executableQueue表中删除任务
+ *             否则, 更新executableQueue表中的记录
+ *             并从executingQueue表中将此任务删除
+ *          d. PushNewJobBiz获取一个新的执行任务:
+ *              i. 获取需要执行的任务(executableQueue表中is_running=false且triggerTime<now()),放入AbstractPreLoader.JOB_MAP对应的TaskTracker nodeGroup对应的queue中
+ *              ii. 从queue中获取一个任务, 组装JobPushRequest对象, 返回给TaskTracker
+ *     9. TaskTracker(JobPushProcessor.JobRunnerCallback)收到响应后,将JobPushRequest对象中的jobMeta放入response中, 并返回jobMeta
+ *     10. 由于jobMeta不为空, JobRunnerDelegate中的线程循环执行, 再次出发上述步骤7的执行
+ *
+ * </pre>
+ */
 public class JobPullMachine {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobPullMachine.class.getSimpleName());

@@ -25,6 +25,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *         用来检查 执行完成的任务, 发送给客户端失败的 由master节点来做
  *         单利
  */
+
+/**
+ * 执行结果反馈发送给JobClient. 如果成功发送,则从feedback表中删除此记录
+ */
 public class FeedbackJobSendChecker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeedbackJobSendChecker.class);

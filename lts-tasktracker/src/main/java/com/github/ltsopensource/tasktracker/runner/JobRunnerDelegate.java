@@ -63,7 +63,9 @@ public class JobRunnerDelegate implements Runnable {
         thread = Thread.currentThread();
 
         try {
+            //阻塞线程中断
             blockedOn(interruptor);
+            //如果线程被中断了, 执行InterruptibleJobRunner的interrupt()方法
             if (Thread.currentThread().isInterrupted()) {
                 ((InterruptibleAdapter) interruptor).interrupt();
             }
@@ -79,9 +81,12 @@ public class JobRunnerDelegate implements Runnable {
                         appContext.getRemotingClient(), appContext);
 
                 try {
+                    //将任务放入执行任务Map中
                     appContext.getRunnerPool().getRunningJobManager()
                             .in(jobMeta.getJobId(), this);
+                    //创建任务执行类
                     this.curJobRunner = appContext.getRunnerPool().getRunnerFactory().newRunner();
+                    //执行任务并获取执行结果
                     Result result = this.curJobRunner.run(buildJobContext(logger, jobMeta));
 
                     if (result == null) {
@@ -96,6 +101,7 @@ public class JobRunnerDelegate implements Runnable {
                     }
 
                     long time = SystemClock.now() - startTime;
+                    //任务总执行时间变更
                     stat.addRunningTime(time);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Job execute completed : {}, time:{} ms.", jobMeta.getJob(), time);
@@ -110,19 +116,24 @@ public class JobRunnerDelegate implements Runnable {
                     LOGGER.error("Job execute error : {}, time: {}, {}", jobMeta.getJob(), time, t.getMessage(), t);
                 } finally {
                     checkInterrupted(logger);
+                    //从执行任务Map中移除此任务
                     appContext.getRunnerPool().getRunningJobManager()
                             .out(jobMeta.getJobId());
                 }
                 // 统计数据
                 stat(response.getAction());
 
+                //判断并设置是否接受新的任务
                 if (isStopToGetNewJob()) {
                     response.setReceiveNewJob(false);
                 }
+
+                //从JobTracker接收新的jobMeta, 不为空, 继续执行
                 this.jobMeta = callback.runComplete(response);
                 DotLogUtils.dot("JobRunnerDelegate.run get job " + (this.jobMeta == null ? "NULL" : "NOT_NULL"));
             }
         } finally {
+            //恢复线程可中断
             blockedOn(null);
         }
     }

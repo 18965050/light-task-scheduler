@@ -83,6 +83,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
             return;
         }
         for (NodeType listenNodeType : listenNodeTypes) {
+            /**
+             * listenNodePath格式: /LTS/<clusterName>/NODES/[JOB_TRACKER, JOB_CLIENT, TASK_TRACKER, MONITOR]
+             */
             String listenNodePath = NodeRegistryUtils.getNodeTypePath(clusterName, listenNodeType);
 
             ChildListener zkListener = addZkListener(node, listener);
@@ -121,6 +124,12 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
 
+    /**
+     * 添加子节点变化监听器(子节点指的是JobTracker,TaskTracker,JobClient,Monitor实例节点)
+     * @param node
+     * @param listener
+     * @return
+     */
     private ChildListener addZkListener(Node node, final NotifyListener listener) {
 
         ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(node);

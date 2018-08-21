@@ -42,22 +42,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Robert HG (254963746@qq.com) on 8/19/14.
- *         死掉的任务
- *         1. 分发出去的，并且执行节点不存在的任务
- *         2. 分发出去，执行节点还在, 但是没有在执行的任务
+ * 
+ *         <pre>
+ *         死掉的任务: 存在于lts_executing_job_queue表中且gmtModified < now()-20s
+ *         1. 分发出去的，并且执行节点不存在的任务, 直接修复
+ *         2. 分发出去，执行节点还在, 但是没有在执行的任务, 询问修复(JOB_ASK到TaskTracker,TaskTracker返回没有在执行的任务, JobTracker收到这些Job后进行修复)
+ *         </pre>
  */
 public class ExecutingDeadJobChecker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutingDeadJobChecker.class);
 
-    private final ScheduledExecutorService FIXED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1, new NamedThreadFactory("LTS-ExecutingJobQueue-Fix-Executor", true));
+    private final ScheduledExecutorService FIXED_EXECUTOR_SERVICE =
+        Executors.newScheduledThreadPool(1, new NamedThreadFactory("LTS-ExecutingJobQueue-Fix-Executor", true));
 
     private JobTrackerAppContext appContext;
     private JobTrackerMStatReporter stat;
 
     public ExecutingDeadJobChecker(JobTrackerAppContext appContext) {
         this.appContext = appContext;
-        this.stat = (JobTrackerMStatReporter) appContext.getMStatReporter();
+        this.stat = (JobTrackerMStatReporter)appContext.getMStatReporter();
     }
 
     private AtomicBoolean start = new AtomicBoolean(false);
@@ -66,7 +70,8 @@ public class ExecutingDeadJobChecker {
     public void start() {
         try {
             if (start.compareAndSet(false, true)) {
-                int fixCheckPeriodSeconds = appContext.getConfig().getParameter(ExtConfig.JOB_TRACKER_EXECUTING_JOB_FIX_CHECK_INTERVAL_SECONDS, 30);
+                int fixCheckPeriodSeconds = appContext.getConfig()
+                    .getParameter(ExtConfig.JOB_TRACKER_EXECUTING_JOB_FIX_CHECK_INTERVAL_SECONDS, 30);
                 if (fixCheckPeriodSeconds < 5) {
                     fixCheckPeriodSeconds = 5;
                 } else if (fixCheckPeriodSeconds > 5 * 60) {
@@ -97,7 +102,8 @@ public class ExecutingDeadJobChecker {
     private void checkAndFix() throws RemotingSendException {
 
         // 30s没有收到反馈信息，需要去检查这个任务是否还在执行
-        int maxDeadCheckTime = appContext.getConfig().getParameter(ExtConfig.JOB_TRACKER_EXECUTING_JOB_FIX_DEADLINE_SECONDS, 20);
+        int maxDeadCheckTime =
+            appContext.getConfig().getParameter(ExtConfig.JOB_TRACKER_EXECUTING_JOB_FIX_DEADLINE_SECONDS, 20);
         if (maxDeadCheckTime < 10) {
             maxDeadCheckTime = 10;
         } else if (maxDeadCheckTime > 5 * 60) {
@@ -106,8 +112,8 @@ public class ExecutingDeadJobChecker {
 
         // 查询出所有死掉的任务 (其实可以直接在数据库中fix的, 查询出来主要是为了日志打印)
         // 一般来说这个是没有多大的，我就不分页去查询了
-        List<JobPo> maybeDeadJobPos = appContext.getExecutingJobQueue().getDeadJobs(
-                SystemClock.now() - maxDeadCheckTime * 1000);
+        List<JobPo> maybeDeadJobPos =
+            appContext.getExecutingJobQueue().getDeadJobs(SystemClock.now() - maxDeadCheckTime * 1000);
         if (CollectionUtils.isNotEmpty(maybeDeadJobPos)) {
 
             Map<String/*taskTrackerIdentity*/, List<JobPo>> jobMap = new HashMap<String, List<JobPo>>();
@@ -124,11 +130,13 @@ public class ExecutingDeadJobChecker {
                 String taskTrackerNodeGroup = entry.getValue().get(0).getTaskTrackerNodeGroup();
                 String taskTrackerIdentity = entry.getKey();
                 // 去查看这个TaskTrackerIdentity是否存活
-                ChannelWrapper channelWrapper = appContext.getChannelManager().getChannel(taskTrackerNodeGroup, NodeType.TASK_TRACKER, taskTrackerIdentity);
+                ChannelWrapper channelWrapper = appContext.getChannelManager().getChannel(taskTrackerNodeGroup,
+                    NodeType.TASK_TRACKER, taskTrackerIdentity);
                 if (channelWrapper == null && taskTrackerIdentity != null) {
                     Long offlineTimestamp = appContext.getChannelManager().getOfflineTimestamp(taskTrackerIdentity);
                     // 已经离线太久，直接修复
-                    if (offlineTimestamp == null || SystemClock.now() - offlineTimestamp > Constants.DEFAULT_TASK_TRACKER_OFFLINE_LIMIT_MILLIS) {
+                    if (offlineTimestamp == null
+                        || SystemClock.now() - offlineTimestamp > Constants.DEFAULT_TASK_TRACKER_OFFLINE_LIMIT_MILLIS) {
                         // fixDeadJob
                         fixDeadJob(entry.getValue());
                     }
@@ -154,7 +162,8 @@ public class ExecutingDeadJobChecker {
             }
             JobAskRequest requestBody = appContext.getCommandBodyWrapper().wrapper(new JobAskRequest());
             requestBody.setJobIds(jobIds);
-            RemotingCommand request = RemotingCommand.createRequestCommand(JobProtos.RequestCode.JOB_ASK.code(), requestBody);
+            RemotingCommand request =
+                RemotingCommand.createRequestCommand(JobProtos.RequestCode.JOB_ASK.code(), requestBody);
             remotingServer.invokeAsync(channel, request, new AsyncCallback() {
                 @Override
                 public void operationComplete(ResponseFuture responseFuture) {
@@ -165,7 +174,8 @@ public class ExecutingDeadJobChecker {
                         if (CollectionUtils.isNotEmpty(deadJobIds)) {
 
                             // 睡了1秒再修复, 防止任务刚好执行完正在传输中. 1s可以让完成的正常完成
-                            QuietUtils.sleep(appContext.getConfig().getParameter(ExtConfig.JOB_TRACKER_FIX_EXECUTING_JOB_WAITING_MILLS, 1000L));
+                            QuietUtils.sleep(appContext.getConfig()
+                                .getParameter(ExtConfig.JOB_TRACKER_FIX_EXECUTING_JOB_WAITING_MILLS, 1000L));
 
                             for (JobPo jobPo : jobPos) {
                                 if (deadJobIds.contains(jobPo.getJobId())) {

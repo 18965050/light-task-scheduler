@@ -62,13 +62,13 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
     final public void start() {
         try {
             if (started.compareAndSet(false, true)) {
-
+                //参数校验
                 configValidate();
 
                 // 初始化配置
                 initConfig();
 
-                // 初始化HttpCmdServer
+                // 初始化HttpCmdServer,应该是给admin使用
                 initHttpCmdServer();
 
                 beforeRemotingStart();
@@ -77,8 +77,10 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
 
                 afterRemotingStart();
 
+                //初始化注册中心及节点监听器
                 initRegistry();
 
+                //注册节点
                 registry.register(node);
 
                 AliveKeeping.start();
@@ -177,6 +179,7 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
         // 订阅的node管理
         SubscribedNodeManager subscribedNodeManager = new SubscribedNodeManager(appContext);
         appContext.setSubscribedNodeManager(subscribedNodeManager);
+        //供注册中心节点发生变化时监听处理
         nodeChangeListeners.add(subscribedNodeManager);
         // 用于master选举的监听器
         nodeChangeListeners.add(new MasterElectionListener(appContext));
@@ -216,11 +219,35 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
 
             @Override
             public void notify(NotifyEvent event, List<Node> nodes) {
+                /**
+                 * <pre>
+                 *     当TaskTracker节点启动时, 此监听器会被触发两次:
+                 *     一次为ADD事件类型的JobTracker
+                 *     另一次为ADD事件类型的TaskTracker
+                 *
+                 *     同时, JobTracker节点此监听器也会被触发一次:
+                 *     ADD事件类型的TaskTracker
+                 * </pre>
+                 */
                 if (CollectionUtils.isEmpty(nodes)) {
                     return;
                 }
                 switch (event) {
                     case ADD:
+                        /**
+                         * <pre>
+                         * jobTracker: nodeChangeListeners包含
+                         *             JobNodeChangeListener,
+                         *             SubscribedNodeManager,
+                         *             MasterElectionListener,
+                         *             SelfChangeListener
+                         * taskTracker: nodeChangeListeners包含
+                         *             SubscribedNodeManager,
+                         *             MasterElectionListener,
+                         *             SelfChangeListener
+                         * </pre>
+                         *
+                         */
                         for (NodeChangeListener listener : nodeChangeListeners) {
                             try {
                                 listener.addNodes(nodes);

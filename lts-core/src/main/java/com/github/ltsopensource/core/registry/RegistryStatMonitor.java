@@ -11,6 +11,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author Robert HG (254963746@qq.com) on 9/8/15.
  */
+
+/**
+ * 注册中心是否可用监听器
+ */
 public class RegistryStatMonitor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegistryStatMonitor.class);

@@ -61,6 +61,12 @@ public abstract class AbstractClientNode<T extends Node, Context extends AppCont
     protected void beforeRemotingStart() {
         //
         this.remotingClient = new RemotingClientDelegate(getRemotingClient(new RemotingClientConfig()), appContext);
+        /**
+         * <pre>
+         *     1. 建立和JobTracker节点连接
+         *     2. HEARTBEAT
+         * </pre>
+         */
         this.heartBeatMonitor = new HeartBeatMonitor(remotingClient, appContext);
 
         beforeStart();

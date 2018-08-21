@@ -53,23 +53,49 @@ public class JobTracker extends AbstractServerNode<JobTrackerNode, JobTrackerApp
         appContext.setRemotingServer(remotingServer);
         appContext.setJobLogger(new SmartJobLogger(appContext));
 
+        //两种Job队列管理, mysql和mongodb. 默认为mysql
         JobQueueFactory factory = ServiceLoader.load(JobQueueFactory.class, config);
 
+        //lts_wjq_<tasktracker.node-group>, taskTracker每个nodeGroup对应一张表
         appContext.setExecutableJobQueue(factory.getExecutableJobQueue(config));
+
+        //lts_executing_job_queue
         appContext.setExecutingJobQueue(factory.getExecutingJobQueue(config));
+
+        //lts_cron_job_queue
         appContext.setCronJobQueue(factory.getCronJobQueue(config));
+
+        //lts_repeat_job_queue
         appContext.setRepeatJobQueue(factory.getRepeatJobQueue(config));
+
+        //lts_suspend_job_queue
         appContext.setSuspendJobQueue(factory.getSuspendJobQueue(config));
+
+        //lts_fjq_<jobclient.node-group>, jobClient每个nodeGroup对应一张表
         appContext.setJobFeedbackQueue(factory.getJobFeedbackQueue(config));
+
+        //lts_node_group_store,节点组信息表
         appContext.setNodeGroupStore(factory.getNodeGroupStore(config));
+
+        //操作lts_wjq_<tasktracker.node-group>
         appContext.setPreLoader(factory.getPreLoader(appContext));
+
+        //Job接收器, 从请求中将job放入对应类型的任务队列表中(cron,repeat)和lts_wjq_<tasktracker.node-group>
         appContext.setJobReceiver(new JobReceiver(appContext));
+
+        //Job发送器, 从lts_wjq_<tasktracker.node-group>取出任务并发送
         appContext.setJobSender(new JobSender(appContext));
+
+        //针对cron任务和repeat任务, 将其加入可执行列表
         appContext.setNonRelyOnPrevCycleJobScheduler(new NonRelyOnPrevCycleJobScheduler(appContext));
+
+        //将可执行队列中正在执行(is_running==true) 且已超过1分钟的任务is_running修改为false
         appContext.setExecutableDeadJobChecker(new ExecutableDeadJobChecker(appContext));
         appContext.setExecutingDeadJobChecker(new ExecutingDeadJobChecker(appContext));
         appContext.setFeedbackJobSendChecker(new FeedbackJobSendChecker(appContext));
 
+
+        //注册HTTP命令
         appContext.getHttpCmdServer().registerCommands(
                 new LoadJobHttpCmd(appContext),     // 手动加载任务
                 new AddJobHttpCmd(appContext),

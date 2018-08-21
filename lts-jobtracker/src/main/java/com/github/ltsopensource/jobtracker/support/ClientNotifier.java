@@ -91,6 +91,10 @@ public class ClientNotifier {
      */
     private boolean send0(String nodeGroup, final List<JobRunResult> results) {
         // 得到 可用的客户端节点
+
+        /**
+         * loadBalance得到一个可用的jobClient节点
+         */
         JobClientNode jobClientNode = appContext.getJobClientManager().getAvailableJobClient(nodeGroup);
 
         if (jobClientNode == null) {

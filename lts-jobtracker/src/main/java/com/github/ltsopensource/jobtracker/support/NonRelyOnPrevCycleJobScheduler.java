@@ -23,7 +23,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 仅用于不依赖上一周期的任务生成器
+ * 
  * @author Robert HG (254963746@qq.com) on 4/2/16.
+ */
+
+/**
+ * <pre>
+ * 非依赖于上个执行任务的可执行任务生成器(针对cron, repeat任务且rely_on_prev_cycle=false)
+ * 默认10分钟触发一次, 一次生成10分钟内所有可执行任务
+ * </pre>
  */
 public class NonRelyOnPrevCycleJobScheduler {
 
@@ -38,7 +46,8 @@ public class NonRelyOnPrevCycleJobScheduler {
 
     public NonRelyOnPrevCycleJobScheduler(JobTrackerAppContext appContext) {
         this.appContext = appContext;
-        this.scheduleIntervalMinute = this.appContext.getConfig().getParameter(ExtConfig.JOB_TRACKER_NON_RELYON_PREV_CYCLE_JOB_SCHEDULER_INTERVAL_MINUTE, 10);
+        this.scheduleIntervalMinute = this.appContext.getConfig()
+            .getParameter(ExtConfig.JOB_TRACKER_NON_RELYON_PREV_CYCLE_JOB_SCHEDULER_INTERVAL_MINUTE, 10);
 
         NodeShutdownHook.registerHook(appContext, this.getClass().getSimpleName(), new Callable() {
             @Override
@@ -53,7 +62,8 @@ public class NonRelyOnPrevCycleJobScheduler {
             return;
         }
         try {
-            executorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(NonRelyOnPrevCycleJobScheduler.class.getSimpleName(), true));
+            executorService = Executors.newScheduledThreadPool(1,
+                new NamedThreadFactory(NonRelyOnPrevCycleJobScheduler.class.getSimpleName(), true));
             this.scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
@@ -99,7 +109,7 @@ public class NonRelyOnPrevCycleJobScheduler {
 
         Date now = new Date();
         Date checkTime = DateUtils.addMinute(now, 10);
-        //  cron任务
+        // cron任务
         while (true) {
             List<JobPo> jobPos = appContext.getCronJobQueue().getNeedGenerateJobPos(checkTime.getTime(), 10);
             if (CollectionUtils.sizeOf(jobPos) == 0) {
@@ -151,11 +161,11 @@ public class NonRelyOnPrevCycleJobScheduler {
 
     private void addCronJobForInterval(final JobPo finalJobPo, Date lastGenerateTime) {
         NonRelyJobUtils.addCronJobForInterval(appContext.getExecutableJobQueue(), appContext.getCronJobQueue(),
-                scheduleIntervalMinute, finalJobPo, lastGenerateTime);
+            scheduleIntervalMinute, finalJobPo, lastGenerateTime);
     }
 
     private void addRepeatJobForInterval(final JobPo finalJobPo, Date lastGenerateTime) {
         NonRelyJobUtils.addRepeatJobForInterval(appContext.getExecutableJobQueue(), appContext.getRepeatJobQueue(),
-                scheduleIntervalMinute, finalJobPo, lastGenerateTime);
+            scheduleIntervalMinute, finalJobPo, lastGenerateTime);
     }
 }

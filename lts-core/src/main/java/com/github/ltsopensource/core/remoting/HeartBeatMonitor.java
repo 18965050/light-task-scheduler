@@ -45,6 +45,9 @@ public class HeartBeatMonitor {
     public HeartBeatMonitor(RemotingClientDelegate remotingClient, AppContext appContext) {
         this.remotingClient = remotingClient;
         this.appContext = appContext;
+        /**
+         * JobTracker不可用时的事件监听器
+         */
         this.jobTrackerUnavailableEventSubscriber = new EventSubscriber(HeartBeatMonitor.class.getName()
                 + "_PING_" + appContext.getConfig().getIdentity(),
                 new Observer() {
@@ -54,6 +57,10 @@ public class HeartBeatMonitor {
                         stopPing();
                     }
                 });
+
+        /**
+         * 订购NODE_ADD事件, 用于监听JOB_TRACKER节点添加事件,并建立和JobTracker的链接
+         */
         appContext.getEventCenter().subscribe(new EventSubscriber(HeartBeatMonitor.class.getName()
                 + "_NODE_ADD_" + appContext.getConfig().getIdentity(), new Observer() {
             @Override

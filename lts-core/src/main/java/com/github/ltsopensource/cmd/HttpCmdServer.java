@@ -34,6 +34,9 @@ public class HttpCmdServer {
         try {
             if (start.compareAndSet(false, true)) {
                 // 开启监听命令
+                /**
+                 * 由于JobTracker占用了8719, 此处会+1,变成8720
+                 */
                 acceptor = new HttpCmdAcceptor(getServerSocket(), context);
                 acceptor.start();
                 LOGGER.info("\n===========================================================================================\n" +

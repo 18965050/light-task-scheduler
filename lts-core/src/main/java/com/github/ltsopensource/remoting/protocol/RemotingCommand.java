@@ -21,6 +21,17 @@ public class RemotingCommand implements Serializable{
     private int subCode;
     private int version = 0;
     private int opaque;
+
+    /**
+     * <pre>
+     * RPC类型标识:
+     * 奇数: 响应,一般情况下res为req+1
+     * 偶数: 请求
+     *
+     * 2, 2的n次方+2(n>=2): ONEWAY
+     * </pre>
+     *
+     */
     private int flag = 0;
     private String remark;
     private int sid = -1;   // serializableTypeId

@@ -80,6 +80,10 @@ public abstract class RetryScheduler<T> {
                 });
         appContext.getEventCenter().subscribe(subscriber, EcTopic.MASTER_CHANGED);
 
+
+        /**
+         * 只有主节点才执行僵死fileStore的任务执行结果反馈
+         */
         if (appContext.getMasterElector().isCurrentMaster()) {
             startMasterCheck();
         }

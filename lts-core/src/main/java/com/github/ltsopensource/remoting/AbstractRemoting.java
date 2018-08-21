@@ -238,12 +238,13 @@ public abstract class AbstractRemoting {
                 @Override
                 public void operationComplete(Future future) throws Exception {
                     if (future.isSuccess()) {
+                        //成功
                         responseFuture.setSendRequestOK(true);
                         return;
                     } else {
                         responseFuture.setSendRequestOK(false);
                     }
-
+                    //失败
                     responseTable.remove(request.getOpaque());
                     responseFuture.setCause(future.cause());
                     responseFuture.putResponse(null);

@@ -11,6 +11,10 @@ import java.util.List;
  * @author Robert HG (254963746@qq.com) on 8/23/14.
  *         用来监听 自己类型 节点的变化,用来选举master
  */
+
+/**
+ * 选主监听器, 主节点变化会触发MasterNodeChangeListener监听器调用(目前只有JobTrack配置有MasterNodeChangeListener, 具体干的活请见JobTrackerMasterChangeListener.change)
+ */
 public class MasterElectionListener implements NodeChangeListener {
 
     private AppContext appContext;

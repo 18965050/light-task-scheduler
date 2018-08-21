@@ -8,6 +8,17 @@ import com.github.ltsopensource.jobtracker.domain.JobTrackerAppContext;
  * @author Robert HG (254963746@qq.com) on 8/24/14.
  *         JobTracker master 节点变化之后
  */
+
+/**
+ * <pre>
+ * 目前,只有JobTracker实现了此接口,master节点实现:
+ * 1. feedbackJobSendCheck
+ * 2. executableDeadJobCheck
+ * 3. executingDeadJobCheck
+ * 4. nonrelyOnPrevCycleJobScheduler
+ * </pre>
+ *
+ */
 public class JobTrackerMasterChangeListener implements MasterChangeListener {
 
     private JobTrackerAppContext appContext;

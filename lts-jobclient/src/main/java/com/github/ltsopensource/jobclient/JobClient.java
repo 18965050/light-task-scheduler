@@ -74,6 +74,18 @@ public class JobClient<T extends JobClientNode, Context extends AppContext> exte
     protected void beforeStop() {
     }
 
+
+    /**
+     * <pre>
+     * 流程:
+     * 1. 限流保护发送
+     * 2. 组装请求, 以命令SUBMIT_JOB发送给JOB_TRACKER
+     * 3. JobTracker(JobSubmitProcessor)-> 接收请求, 放入executableQueue表中. 注意任务不能重复(nodeGroup和taskId不能一致)
+     * </pre>
+     * @param job
+     * @return
+     * @throws JobSubmitException
+     */
     public Response submitJob(Job job) throws JobSubmitException {
         checkStart();
         return protectSubmit(Collections.singletonList(job));

@@ -30,6 +30,13 @@ public class ServiceLoader {
     private static final ConcurrentMap<Class<?>, ServiceProvider> serviceMap = new ConcurrentHashMap<Class<?>, ServiceProvider>();
     private static final ConcurrentMap<IdentityUniqueKey, Object> cachedObjectMap = new ConcurrentHashMap<IdentityUniqueKey, Object>();
 
+    /**
+     * 部分借用dubbo扩展体系, 但要比dubbo简单
+     * @param clazz
+     * @param config
+     * @param <T>
+     * @return
+     */
     public static <T> T load(Class<T> clazz, Config config) {
         ServiceProvider serviceProvider = getServiceProvider(clazz);
         String dynamicServiceName = config.getParameter(serviceProvider.dynamicConfigKey);

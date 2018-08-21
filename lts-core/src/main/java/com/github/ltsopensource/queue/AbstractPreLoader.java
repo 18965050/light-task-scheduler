@@ -18,6 +18,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author Robert HG (254963746@qq.com) on 8/14/15.
  */
+
+/**
+ * <pre>
+ * 可执行任务预加载器.两种方式加载可执行任务:
+ * 1. 定时任务加载TaskTracker对应的任务
+ * 2. JobSender.fetchJob().这又分为两种情况:
+ *      a. JobTRacker的JobPusher推送任务到TaskTracker上
+ *      b. TaskTracker任务执行完成后, 允许继续推送新的可执行任务过来
+ * </pre>
+ */
 public abstract class AbstractPreLoader implements PreLoader {
 
     private int loadSize;
