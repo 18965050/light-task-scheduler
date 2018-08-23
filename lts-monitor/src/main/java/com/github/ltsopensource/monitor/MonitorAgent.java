@@ -56,7 +56,7 @@ public class MonitorAgent {
         }
 
         try {
-            // 初始化
+            // 初始化, 应该为initConfig
             intConfig();
 
             // 默认端口

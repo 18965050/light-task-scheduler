@@ -57,14 +57,14 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
-    <!--<servlet>-->
-        <!--<servlet-name>H2Console</servlet-name>-->
-        <!--<servlet-class>com.github.ltsopensource.admin.web.support.H2ConsoleWebServlet</servlet-class>-->
-        <!--<load-on-startup>1</load-on-startup>-->
-    <!--</servlet>-->
-    <!--<servlet-mapping>-->
-        <!--<servlet-name>H2Console</servlet-name>-->
-        <!--<url-pattern>/h2/*</url-pattern>-->
-    <!--</servlet-mapping>-->
+    <servlet>
+        <servlet-name>H2Console</servlet-name>
+        <servlet-class>com.github.ltsopensource.admin.web.support.H2ConsoleWebServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>H2Console</servlet-name>
+        <url-pattern>/h2/*</url-pattern>
+    </servlet-mapping>
 
 </web-app>

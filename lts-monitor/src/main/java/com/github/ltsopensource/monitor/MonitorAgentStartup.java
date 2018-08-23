@@ -18,6 +18,14 @@ public class MonitorAgentStartup {
         start(cfgPath);
     }
 
+    /**
+     * <pre>
+     *     1. 加载并初始化配置(lts-monitor.cfg),初始化DB访问
+     *     2. 启动HTTP Server(端口8730), 注册MDataAddHttpCmd命令
+     *     3. 节点注册到注册中心
+     * </pre>
+     * @param cfgPath
+     */
     public static void start(String cfgPath) {
 
         if (!started.compareAndSet(false, true)) {

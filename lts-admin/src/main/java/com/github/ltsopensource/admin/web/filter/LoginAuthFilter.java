@@ -16,6 +16,10 @@ import java.io.IOException;
  * @author ztajy
  * @author Robert HG (254963746@qq.com)
  */
+
+/**
+ * HTTP Basic认证
+ */
 public class LoginAuthFilter implements Filter {
     private static final String AUTH_PREFIX = "Basic ";
     private AntPathMatcher pathMatcher = new AntPathMatcher();

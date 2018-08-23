@@ -21,6 +21,7 @@ public class SystemInitListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 
+        //加载配置文件lts-admin.cfg
         String confPath = servletContextEvent.getServletContext().getInitParameter("lts.admin.config.path");
         if (StringUtils.isNotEmpty(confPath)) {
             System.out.println("lts.admin.config.path : " + confPath);
@@ -48,6 +49,7 @@ public class SystemInitListener implements ServletContextListener {
             PropertyConfigurator.configure(log4jPath);
         }
 
+        //是否启动monitor
         boolean monitorAgentEnable = Boolean.valueOf(AppConfigurer.getProperty("lts.monitorAgent.enable", "true"));
         if (monitorAgentEnable) {
             String ltsMonitorCfgPath = confPath;

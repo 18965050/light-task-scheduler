@@ -62,7 +62,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *          i. retryScheduler定时任务(默认30s触发一次),从failStore获取任务执行结果(JobRunResult),发送给JobTracker
  *     8. JobTracker(JobCompletedProcessor)处理任务执行结果:
  *          a. JobStatBiz->任务执行统计(表lts_job_log_po,JobTrackerMStatReporter )
- *          b. JobProcBiz->判断此任务十分需要反馈给client, 如果需要, 通过ClientNotifier通知JobClient任务执行结果,并在接受JobClient响应后继续下面c的处理
+ *          b. JobProcBiz->判断此任务是否需要反馈给client, 如果需要, 通过ClientNotifier通知JobClient任务执行结果,并在接受JobClient响应后继续下面c的处理
  *          c. 判断任务是cron任务或repeat任务, 如果是的话,计算下次任务触发时间.
  *             如果时间计算不出来, 说明任务执行完成, 直接从executableQueue表中删除任务
  *             否则, 更新executableQueue表中的记录

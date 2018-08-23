@@ -109,7 +109,7 @@ public abstract class AbstractPreLoader implements PreLoader {
         }
         int size = queue.size();
         if (force || (isInFactor(size))) {
-
+            //TODO: 此处是否为bug? 是否为loadSize - size
             int needLoadSize = loadSize + size;
             if (force) {
                 // 强制加载全量加载吧
